@@ -97,7 +97,10 @@ const usePokedex = () => {
       tipos: d.types.map(t => t.type.name),
       peso: d.weight / 10,
       altura: d.height / 10,
-      gif: d.sprites.versions['generation-v']['black-white'].animated.front_default || d.sprites.front_default,
+      // *** CAMBIO AQUÍ: Usamos los sprites animados de Showdown (más limpios y grandes) ***
+      // La URL se construye con el nombre del Pokémon
+      gif: `https://play.pokemonshowdown.com/sprites/ani/${d.name}.gif`,
+      // *** FIN DEL CAMBIO ***
       urlDetalle: `${URL_BASE}/pokemon/${d.id}`,
       stats: d.stats.map(s => ({ name: s.stat.name, base_stat: s.base_stat })),
     }));
@@ -205,6 +208,7 @@ const FichaPokemon = React.memo(({ pokemon, isFav, onSelect, onFavClick }) => {
 
   const handleError = (e) => {
     e.target.onerror = null;
+    // Fallback a la imagen estática oficial en caso de que el GIF de Showdown no cargue (pasa con algunas formas)
     e.target.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`;
   };
 
@@ -355,7 +359,9 @@ const ModalDetallePokemon = ({ pokemon, alCerrarModal, alSeleccionarEvolucion, f
     const varieties = details.map(d => ({
       id: d.id,
       nombre: d.name,
-      gif: d.sprites.versions['generation-v']['black-white'].animated.front_default || d.sprites.front_default,
+      // *** CAMBIO AQUÍ: Usamos los sprites animados de Showdown para las variedades ***
+      gif: `https://play.pokemonshowdown.com/sprites/ani/${d.name}.gif`,
+      // *** FIN DEL CAMBIO ***
       tipos: d.types.map(t => t.type.name),
       is_default: d.is_default,
     })).filter(v => v.gif || v.is_default);
@@ -415,7 +421,7 @@ const ModalDetallePokemon = ({ pokemon, alCerrarModal, alSeleccionarEvolucion, f
             <button
               onClick={() => toggleFav(pokemon)}
               className="fav-button-lg"
-              style={{ backgroundColor: isFav(pokemon.id) ? '#dc2626' : '#f4ececff', color: 'white', padding: '8px', borderRadius: '50%', border: 'none', transition: 'background-color 0.2s' }}
+              style={{ backgroundColor: isFav(pokemon.id) ? '#dc2626' : '#f87171', color: 'white', padding: '8px', borderRadius: '50%', border: 'none', transition: 'background-color 0.2s' }}
               aria-label={isFav(pokemon.id) ? "Eliminar de favoritos" : "Agregar a favoritos"}
             >
               <IconoCorazon solido={true} color="white" />
@@ -432,7 +438,7 @@ const ModalDetallePokemon = ({ pokemon, alCerrarModal, alSeleccionarEvolucion, f
                 <img src={art} alt={pokemon.nombre} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', filter: 'drop-shadow(0 8px 6px rgba(0,0,0,0.2))' }} />
               </div>
 
-              <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', backgroundColor: '#05203bff' }} className="dark:bg-gray-700">
+              <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', backgroundColor: '#f9fafb' }} className="dark:bg-gray-700">
                 <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '8px' }}>Datos</h3>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '4px 0' }}><span>Peso:</span><span>{pokemon.peso} kg</span></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', padding: '4px 0' }}><span>Altura:</span><span>{pokemon.altura} m</span></div>
@@ -631,22 +637,22 @@ export default function App() {
                 .card-grid { 
                     display: grid; 
                     /* Usamos auto-fit para que quepan tantos de 150px como sea posible, y se centran */
-                    grid-template-columns: repeat(auto-fit, 200px); 
+                    grid-template-columns: repeat(auto-fit, 150px); 
                     gap: 12px; 
                     justify-content: center; 
                 }
 
                 /* FICHA DE POKÉMON (Nueva altura/ancho fijo) */
                 .pokemon-card { 
-                    width: 200px;
-                    height: 80px;
+                    width: 150px; /* Ancho fijo solicitado */
+                    height: 80px; /* Alto fijo solicitado */
                     padding: 6px; 
                     border-radius: 8px; 
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
                     cursor: pointer; 
                     transform: scale(1); 
                     transition: all 0.3s; 
-                    border: 0px solid; 
+                    border: 2px solid; 
                     display: flex; 
                     align-items: center;
                     gap: 4px; /* Espacio entre imagen y contenido */
@@ -662,6 +668,7 @@ export default function App() {
                     justify-content: center; 
                     align-items: center; 
                     flex-shrink: 0;
+                    background-color: rgba(255, 255, 255, 0.5);
                     border-radius: 4px;
                 }
                 .card-img { 
@@ -783,57 +790,16 @@ export default function App() {
                 .dark .modal-actions { border-top: 1px solid #374151; }
                 
                 /* Detalle Modal */
-                .detail-grid {
-                  display: grid;
-                  gap: 24px;
-                }
-                @media (min-width: 1024px) {
-                  .detail-grid {
-                    grid-template-columns: repeat(3, 1fr);
-                  }
-                }
-                .type-list {
-                  display: flex;
-                  justify-content: flex-end;
-                  gap: 4px;
-                  margin-top: 0;
-                }
-                .type-badge {
-                  font-size: 12px;
-                  font-weight: 600;
-                  padding: 2px 8px;
-                  border-radius: 9999px;
-                  color: white;
-                  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-                }
+                .detail-grid { display: grid; gap: 24px; }
+                @media (min-width: 1024px) { .detail-grid { grid-template-columns: repeat(3, 1fr); } }
+                .type-list { display: flex; justify-content: flex-end; gap: 4px; margin-top: 0; }
+                .type-badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; color: white; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
 
-                .stat-bar-container {
-                  display: flex;
-                  align-items: center;
-                  margin-bottom: 8px;
-                }
-                .stat-name {
-                  width: 25%;
-                  font-weight: 600;
-                  font-size: 0.875rem;
-                  color: #4b5563;
-                }
-                .dark .stat-name {
-                  color: #d1d5db;
-                }
-                .stat-value {
-                  width: 8.333333%;
-                  text-align: center;
-                  font-size: 0.875rem;
-                  font-weight: 700;
-                }
-                .stat-bar {
-                  width: 66.666667%;
-                  height: 8px;
-                  border-radius: 9999px;
-                  background-color: #e5e7eb;
-                  margin-left: 8px;
-                  }
+                .stat-bar-container { display: flex; align-items: center; margin-bottom: 8px; }
+                .stat-name { width: 25%; font-weight: 600; font-size: 0.875rem; color: #4b5563; }
+                .dark .stat-name { color: #d1d5db; }
+                .stat-value { width: 8.333333%; text-align: center; font-size: 0.875rem; font-weight: 700; }
+                .stat-bar { width: 66.666667%; height: 8px; border-radius: 9999px; background-color: #e5e7eb; margin-left: 8px; }
                 .dark .stat-bar { background-color: #374151; }
                 .stat-bar-fill { height: 100%; border-radius: 9999px; transition: width 0.5s; }
 
